@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modération Gratte-Gratte</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --card-bg: #131924;
+            --accent-cyan: #45f3ff;
+            --accent-pink: #ff007f;
+            --accent-gold: #ffd700;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; padding: 20px;
+            background: var(--bg-color); color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container { max-width: 900px; width: 100%; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--accent-cyan); padding-bottom: 15px; margin-bottom: 20px;
+        }
+
+        h1 { color: var(--accent-gold); margin: 0; font-size: 22px; }
+
+        .header-links {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--card-bg); border: 1px solid var(--accent-cyan);
+            border-radius: 10px; padding: 20px; margin-bottom: 20px;
+        }
+
+        .form-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+
+        input, select {
+            padding: 10px; border-radius: 6px; border: 1px solid var(--accent-cyan);
+            background: #000; color: #fff; font-size: 14px; flex: 1; min-width: 150px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent-pink), #7928ca);
+            color: #fff; border: none; padding: 10px 20px; border-radius: 6px;
+            font-weight: 900; cursor: pointer; text-transform: uppercase;
+        }
+
+        .btn-refresh {
+            background: rgba(69, 243, 255, 0.1);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        .btn-refresh:hover {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+
+        .code-display {
+            font-family: monospace; font-size: 24px; color: var(--accent-gold);
+            background: rgba(255, 215, 0, 0.1); border: 1px dashed var(--accent-gold);
+            padding: 10px; border-radius: 6px; text-align: center; margin-top: 15px; display: none;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px; text-align: left; }
+        th { color: var(--accent-cyan); background: rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 1; }
+
+        .badge { padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
+        .bg-used { background: #2ed573; color: #000; }
+        .bg-active { background: #ff4757; color: #fff; }
+
+        .badge-r-commune { background: #888; color: #fff; }
+        .badge-r-peu-commune { background: #2ed573; color: #000; }
+        .badge-r-rare { background: #1e90ff; color: #fff; }
+        .badge-r-ultra-rare { background: #9b59b6; color: #fff; }
+        .badge-r-full-art { background: #ffd700; color: #000; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>🎟️ Modération Gratte-Gratte</h1>
+            <div class="header-links">
+                <button class="btn-refresh" onclick="manualRefresh()">🔄 Actualiser & Sync</button>
+                <!-- CORRECTION : Redirection vers index.html au lieu de gratte.html -->
+                <a href="index.html" target="_blank" style="color:var(--accent-cyan); text-decoration:none; font-weight:bold;">🎮 Voir le Gratte-Gratte</a>
+            </div>
+        </header>
+
+        <!-- AUTHENTIFICATION -->
+        <div id="authCard" class="card" style="max-width: 400px; margin: 40px auto; text-align: center;">
+            <h3>Connexion Modo</h3>
+            <input type="password" id="modPass" placeholder="Mot de passe secret" style="width: 100%; margin-bottom: 10px;" onkeydown="if(event.key === 'Enter') checkAuth()">
+            <button class="btn" style="width: 100%;" onclick="checkAuth()">Se Connecter</button>
+        </div>
+
+        <!-- CONTENU DASHBOARD -->
+        <div id="dashboard" class="hidden">
+            <!-- GENERATEUR -->
+            <div class="card">
+                <h3>✨ Générer un Nouveau Code Ticket</h3>
+                <div class="form-group">
+                    <select id="ticketRarity">
+                        <option value="random">🎲 Rareté Aléatoire (%)</option>
+                        <option value="commune">⚪ Commune</option>
+                        <option value="peu-commune">🟢 Peu Commune</option>
+                        <option value="rare">🔵 Rare</option>
+                        <option value="ultra-rare">🟣 Ultra Rare</option>
+                        <option value="full-art">🌈 Full Art</option>
+                    </select>
+                    <button class="btn" onclick="generateCode()">Créer le Code</button>
+                </div>
+                <div id="newCodeBox" class="code-display"></div>
+            </div>
+
+            <!-- HISTORIQUE DES DERNIERS GAINS GRATTÉS EN LIVE -->
+            <div class="card" style="border-color: var(--accent-pink);">
+                <h3 style="color: var(--accent-pink); margin-top:0;">⚡ Derniers Gains Grattés en Direct</h3>
+                <div style="max-height: 450px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Heure</th>
+                                <th>Joueur</th>
+                                <th>Gain Remporté</th>
+                                <th>Rareté</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveGainsList">
+                            <tr><td colspan="4" style="text-align:center; opacity:0.6;">En attente de grattages...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- LISTE DES CODES GENERES -->
+            <div class="card">
+                <h3>📋 Codes Tickets Générés</h3>
+                <div style="max-height: 450px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Rareté</th>
+                                <th>Statut</th>
+                                <th>Utilisateur</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsList"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMncA6AeSM3rY7BE20MudyEjO4Et3GFbY",
+            authDomain: "bingostream-pierot.firebaseapp.com",
+            databaseURL: "https://bingostream-pierot-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "bingostream-pierot",
+            storageBucket: "bingostream-pierot.firebasestorage.app",
+            messagingSenderId: "848127391053",
+            appId: "1:848127391053:web:0146ef5a04bd53464a7304"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4bbk-SnFSMnxg_wH1MEMqUmxEm5pPJDsCXwgz5emVe3LqHHCdDzzDDRaRbzp7GBto/exec";
+
+        function checkAuth() {
+            if (document.getElementById('modPass').value === "pierot2026") {
+                document.getElementById('authCard').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                
+                sessionStorage.setItem('mod_logged', 'true');
+
+                listenTickets();
+                listenLiveGains();
+            } else {
+                alert("Mot de passe incorrect !");
+            }
+        }
+
+        window.onload = function() {
+            if (sessionStorage.getItem('mod_logged') === 'true') {
+                document.getElementById('authCard').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                listenTickets();
+                listenLiveGains();
+            }
+        };
+
+        function manualRefresh() {
+            const btn = document.querySelector('.btn-refresh');
+            btn.textContent = "⏳ Synchro...";
+
+            fetch(`${GOOGLE_SCRIPT_URL}?action=sync`)
+                .catch(err => console.log("Sync request sent"))
+                .finally(() => {
+                    db.ref('scratch_tickets').once('value').then(snap => updateTicketsTable(snap.val()));
+                    db.ref('scratch_history').limitToLast(50).once('value').then(snap => updateLiveGainsTable(snap.val()));
+                    
+                    setTimeout(() => { btn.textContent = "🔄 Actualiser & Sync"; }, 1000);
+                });
+        }
+
+        function generateCode() {
+            const code = Math.floor(1000 + Math.random() * 9000).toString();
+            const rarity = document.getElementById('ticketRarity').value;
+
+            db.ref(`scratch_tickets/${code}`).set({
+                created: Date.now(),
+                rarity: rarity,
+                used: false,
+                user: ""
+            });
+
+            fetch(`${GOOGLE_SCRIPT_URL}?action=createTicket&code=${code}&rarity=${rarity}`, {
+                method: 'GET',
+                mode: 'no-cors'
+            }).catch(err => console.error("Erreur synchro Google Sheet:", err));
+
+            const box = document.getElementById('newCodeBox');
+            box.style.display = 'block';
+            box.innerHTML = `Code Ticket : <strong>${code}</strong> <button onclick="navigator.clipboard.writeText('${code}')" style="margin-left:10px; cursor:pointer;">📋 Copier</button>`;
+        }
+
+        function listenTickets() {
+            db.ref('scratch_tickets').on('value', snap => {
+                updateTicketsTable(snap.val());
+            });
+        }
+
+        function updateTicketsTable(ticketsData) {
+            const tickets = ticketsData || {};
+            const tbody = document.getElementById('ticketsList');
+            tbody.innerHTML = '';
+
+            const keys = Object.keys(tickets);
+            if (keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; opacity:0.6;">Aucun code généré pour le moment.</td></tr>';
+                return;
+            }
+
+            const sortedKeys = keys.sort((a, b) => {
+                const timeA = tickets[a].created || 0;
+                const timeB = tickets[b].created || 0;
+                return timeB - timeA; 
+            });
+
+            sortedKeys.forEach(code => {
+                const t = tickets[code];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${code}</strong></td>
+                    <td>${t.rarity || 'random'}</td>
+                    <td><span class="badge ${t.used ? 'bg-used' : 'bg-active'}">${t.used ? 'GRATTÉ' : 'DISPONIBLE'}</span></td>
+                    <td>${t.user || '-'}</td>
+                    <td><button onclick="deleteTicket('${code}')" style="background:#ff4757; color:#fff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer;">🗑️</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function listenLiveGains() {
+            db.ref('scratch_history').limitToLast(50).on('value', snap => {
+                updateLiveGainsTable(snap.val());
+            });
+        }
+
+        function updateLiveGainsTable(gainsData) {
+            const gains = gainsData || {};
+            const tbody = document.getElementById('liveGainsList');
+            tbody.innerHTML = '';
+
+            const keys = Object.keys(gains).reverse();
+            if(keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; opacity:0.6;">Aucun gain récent.</td></tr>';
+                return;
+            }
+
+            keys.forEach(id => {
+                const g = gains[id];
+                const date = new Date(g.time || Date.now());
+                const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                const rarityClass = g.rarity ? `badge-r-${g.rarity}` : 'badge-r-commune';
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span style="opacity:0.7;">${timeStr}</span></td>
+                    <td><strong style="color:var(--accent-cyan);">${g.user || 'Anonyme'}</strong></td>
+                    <td><strong>${g.reward || 'Gain'}</strong></td>
+                    <td><span class="badge ${rarityClass}">${(g.rarity || 'commune').replace('-', ' ')}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteTicket(code) {
+            if (confirm(`Supprimer le code ${code} ?`)) {
+                db.ref(`scratch_tickets/${code}`).remove();
+            }
+        }
+    </script>
+</body>
+</html>

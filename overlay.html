@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Overlay OBS - Gratte Gratte</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            margin: 0; padding: 0; overflow: hidden;
+            background: transparent;
+            font-family: 'Montserrat', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh;
+        }
+
+        .alert-card {
+            position: relative;
+            width: 420px;
+            background: #131924;
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+            transform: scale(0);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .alert-card.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .logo-img {
+            width: 70px; height: 70px; border-radius: 50%;
+            border: 2px solid #45f3ff; margin-bottom: 10px;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-size: 24px; color: #45f3ff; text-transform: uppercase; margin: 5px 0;
+        }
+
+        .rarity-tag {
+            display: inline-block; padding: 4px 15px; border-radius: 12px;
+            font-size: 12px; font-weight: 900; text-transform: uppercase; margin: 8px 0;
+        }
+
+        .reward-box {
+            font-size: 20px; font-weight: 900; color: #ffd700;
+            margin-top: 10px; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="alertBox" class="alert-card">
+        <img src="./image/logo.jpg" class="logo-img" alt="Logo">
+        <div id="alertUser" class="user-name">...</div>
+        <div style="font-size:14px; opacity:0.8;">a gratté un ticket !</div>
+        <div id="alertRarity" class="rarity-tag"></div>
+        <div id="alertReward" class="reward-box">...</div>
+    </div>
+
+    <!-- SON UNIQUE POUR LE GRATTE-GRATTE (Ex: Son de validation / caisse) -->
+    <audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3" preload="auto"></audio>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMncA6AeSM3rY7BE20MudyEjO4Et3GFbY",
+            authDomain: "bingostream-pierot.firebaseapp.com",
+            databaseURL: "https://bingostream-pierot-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "bingostream-pierot",
+            storageBucket: "bingostream-pierot.firebasestorage.app",
+            messagingSenderId: "848127391053",
+            appId: "1:848127391053:web:0146ef5a04bd53464a7304"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let lastTime = 0;
+
+        // Ecoute la dernière alerte déclenchée
+        db.ref('scratch_alerts').on('value', snap => {
+            const data = snap.val();
+            if (data && data.time && data.time > lastTime) {
+                lastTime = data.time;
+                showAlert(data);
+            }
+        });
+
+        function showAlert(data) {
+            const card = document.getElementById('alertBox');
+            document.getElementById('alertUser').textContent = data.user;
+            document.getElementById('alertReward').textContent = data.reward;
+
+            const rarityTag = document.getElementById('alertRarity');
+            rarityTag.textContent = data.rarity.replace('-', ' ');
+            rarityTag.style.background = getRarityColor(data.rarity);
+
+            // Jouer le son unique
+            document.getElementById('winSound').play().catch(()=>{});
+
+            // Confettis
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
+
+            // Afficher l'alerte
+            card.classList.add('show');
+
+            // Masquer après 7 secondes
+            setTimeout(() => {
+                card.classList.remove('show');
+            }, 7000);
+        }
+
+        function getRarityColor(r) {
+            switch(r) {
+                case 'commune': return '#888';
+                case 'peu-commune': return '#2ed573';
+                case 'rare': return '#1e90ff';
+                case 'ultra-rare': return '#9b59b6';
+                case 'full-art': return '#ffd700';
+                default: return '#ff007f';
+            }
+        }
+    </script>
+</body>
+</html>
