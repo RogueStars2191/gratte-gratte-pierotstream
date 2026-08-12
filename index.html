@@ -508,7 +508,12 @@
 
         const TWITCH_CLIENT_ID = "5erszpx8rq0q4yhg3ae3khf6dhk1ni"; 
         const sheetId = "1Cdun-hBS5HqTmSS1jfApoHMw3vpTuOLxPqdYsx-qZAg";
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4bbk-SnFSMnxg_wH1MEMqUmxEm5pPJDsCXwgz5emVe3LqHHCdDzzDDRaRbzp7GBto/exec";
+        
+        // 1. Script Google pour la gestion et vérification des TICKETS
+        const GOOGLE_TICKET_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4bbk-SnFSMnxg_wH1MEMqUmxEm5pPJDsCXwgz5emVe3LqHHCdDzzDDRaRbzp7GBto/exec";
+        
+        // 2. Script Google pour l'enregistrement des CARTES DANS LA COLLECTION
+        const GOOGLE_COLLECTION_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVWJrKM0azzatfqCzpi8qDKeBAc2d9TIJtiBKTL2sOWjk80PsaTCUXy5DJmPmuxtH_/exec";
 
         const MON_PSEUDO_ADMIN = "pierotstream";
 
@@ -571,7 +576,7 @@
             requestAnimationFrame(scratchDemoStep);
         }
 
-        /* --- CORRECTION REDIRECTION TWITCH --- */
+        /* --- REDIRECTION TWITCH --- */
         function loginWithTwitch() {
             const redirectUri = window.location.origin + window.location.pathname;
             const url = `https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=user:read:email`;
@@ -732,7 +737,8 @@
             err.style.display = "block";
 
             try {
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=useTicket&code=${code}&user=${encodeURIComponent(currentUser)}`);
+                // Utilisation de GOOGLE_TICKET_SCRIPT_URL
+                const response = await fetch(`${GOOGLE_TICKET_SCRIPT_URL}?action=useTicket&code=${code}&user=${encodeURIComponent(currentUser)}`);
                 const resultText = await response.text();
 
                 if (resultText.includes("Succès")) {
@@ -923,7 +929,7 @@
         }
 
         // =======================================================
-        // FONCTION CORRIGÉE POUR ENVOI DU CARD_ID VERS GOOGLE SHEETS
+        // ENVOI DE LA CARTE GAGNÉE VERS GOOGLE SHEETS (COLLECTION)
         // =======================================================
         function revealCardFully() {
             if (isScratched) return;
@@ -941,7 +947,8 @@
                 payload.append('user', currentReward.user);
                 payload.append('cardId', currentReward.cardId);
 
-                fetch(GOOGLE_SCRIPT_URL, {
+                // Utilisation de GOOGLE_COLLECTION_SCRIPT_URL
+                fetch(GOOGLE_COLLECTION_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
