@@ -943,19 +943,15 @@
             confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
 
             if (currentReward.type === "card" && currentReward.cardId) {
-                const payload = new URLSearchParams();
-                payload.append('user', currentReward.user);
-                payload.append('cardId', currentReward.cardId);
+                // Passage des paramètres par l'URL (survit aux redirections 302 de Google Apps Script)
+                const urlAvecParams = `${GOOGLE_COLLECTION_SCRIPT_URL}?user=${encodeURIComponent(currentReward.user)}&cardId=${encodeURIComponent(currentReward.cardId)}`;
 
-                // Utilisation de GOOGLE_COLLECTION_SCRIPT_URL
-                fetch(GOOGLE_COLLECTION_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: payload.toString()
-                }).catch(e => console.error("Erreur écriture Google Sheets", e));
+                fetch(urlAvecParams, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                })
+                .then(() => console.log("Carte enregistrée avec succès dans la collection !"))
+                .catch(e => console.error("Erreur écriture Google Sheets", e));
 
                 document.getElementById('albumLinkBtn').style.display = 'block';
             }
