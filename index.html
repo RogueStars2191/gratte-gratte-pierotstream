@@ -20,6 +20,14 @@
         * { 
             box-sizing: border-box; 
             -webkit-tap-highlight-color: transparent; 
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
+        }
+
+        input {
+            -webkit-user-select: text !important;
+            user-select: text !important;
         }
 
         body {
@@ -31,21 +39,16 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            user-select: none;
-            -webkit-user-select: none;
         }
 
-        /* --- FIXE FORCE MOBILE --- */
-        button, a, .btn-reveal, .btn-back-menu, .btn-replay-bonus {
-            user-select: none !important;
-            -webkit-user-select: none !important;
-            -webkit-touch-callout: none !important;
+        button, a, .btn-action {
             touch-action: manipulation !important;
             cursor: pointer;
             position: relative;
             z-index: 999 !important;
+            border: none;
+            outline: none;
             text-decoration: none;
-            display: inline-block;
         }
 
         /* --- LANDING PAGE --- */
@@ -209,8 +212,6 @@
             border-radius: 8px; border: 1px solid var(--accent-cyan);
             background: #000; color: #fff; font-size: 16px; text-align: center;
             outline: none;
-            user-select: auto !important;
-            -webkit-user-select: auto !important;
         }
 
         .btn {
@@ -360,25 +361,49 @@
             margin-top: 5px;
         }
 
-        canvas#scratchCanvas {
+        /* --- CORRECTION CIBLÉE DU CANVAS --- */
+        #scratchCanvas {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
             z-index: 10;
             touch-action: none;
+            cursor: pointer;
+        }
+
+        /* DÉSACTIVATION TACTILE LORSQUE RÉVÉLÉ */
+        #scratchCanvas.disabled {
+            display: none !important;
+            pointer-events: none !important;
         }
 
         .btn-reveal {
-            background: rgba(13, 17, 23, 0.9);
+            background: rgba(13, 17, 23, 0.95);
             border: 2px solid var(--accent-cyan);
             color: var(--accent-cyan);
-            padding: 12px 20px;
+            padding: 14px 20px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 800;
             margin-top: 12px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 0 10px rgba(69, 243, 255, 0.3);
+            box-shadow: 0 0 15px rgba(69, 243, 255, 0.3);
+        }
+
+        .btn-album {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #000;
+            border: 2px solid #fff;
+            padding: 14px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 900;
+            margin-top: 12px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            display: none;
         }
 
         .btn-replay-bonus {
@@ -392,7 +417,7 @@
         }
     </style>
 </head>
-<body>
+<body ontouchstart="">
 
     <!-- LANDING PAGE -->
     <div id="stepLogin">
@@ -431,7 +456,7 @@
             </div>
         </div>
 
-        <button class="btn-twitch-hero" onclick="loginWithTwitch()">
+        <button class="btn-twitch-hero btn-action" onclick="loginWithTwitch()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.571zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
             Se connecter avec Twitch
         </button>
@@ -444,19 +469,19 @@
         <div id="userBadge" class="user-logged-badge">
             <span>👾 <span id="loggedTwitchName" style="color:var(--accent-cyan);">...</span></span>
             <div class="user-actions-group">
-                <button class="btn-refresh" onclick="forceRefreshCache()">🔄 Actualiser</button>
-                <button class="btn-logout" onclick="logoutUser()">Déconnexion</button>
+                <button class="btn-refresh btn-action" onclick="forceRefreshCache()">🔄 Actualiser</button>
+                <button class="btn-logout btn-action" onclick="logoutUser()">Déconnexion</button>
             </div>
         </div>
 
         <input type="text" id="ticketCode" placeholder="Code Ticket (ex: 6446)">
-        <button class="btn" onclick="claimTicket()">Gratter mon Ticket !</button>
+        <button class="btn btn-action" onclick="claimTicket()">Gratter mon Ticket !</button>
         <p id="errMsg" style="color:#ff4757; font-size:12px; display:none; margin-top:8px;"></p>
     </div>
 
     <!-- ÉTAPE 3 : ZONE DE GRATTAGE -->
     <div id="ticketArea" class="ticket-container">
-        <button class="btn-back-menu" onclick="backToTicketInput()">⬅️ Saisir un autre code</button>
+        <button class="btn-back-menu btn-action" onclick="backToTicketInput()">⬅️ Saisir un autre code</button>
 
         <h3 id="ticketInstruction" style="color:var(--accent-cyan); text-align:center; font-size:13px; margin-bottom:8px;">✨ Grattez la zone dorée ci-dessous ! ✨</h3>
         
@@ -481,13 +506,13 @@
             </div>
         </div>
 
-        <button id="replayBtn" class="btn-replay-bonus" onclick="playBonusTicket()">🎁 Gratter mon Ticket Gratuit !</button>
+        <button id="replayBtn" class="btn-replay-bonus btn-action" onclick="playBonusTicket()">🎁 Gratter mon Ticket Gratuit !</button>
         
-        <!-- BOUTON DÉVOILER -->
-        <button id="revealBtn" class="btn-reveal" onclick="revealCardFully()">⚡ Dévoiler directement la carte</button>
+        <!-- BOUTON DÉVOILER DÉDIÉ -->
+        <button id="revealBtn" class="btn-reveal btn-action" onclick="revealCardFully()">⚡ Dévoiler directement la carte</button>
         
-        <!-- VRAI LIEN NATIF ALBUM (FIX MOBILE) -->
-        <a id="albumLinkBtn" href="https://album-twitch-rogue.onrender.com" target="_blank" rel="noopener noreferrer" class="btn-reveal" style="display:none; margin-top:8px;">🖼️ Voir ma carte ajoutée dans mon Album</a>
+        <!-- BOUTON ALBUM AVEC REDIRECTION DIRECTE -->
+        <button id="albumLinkBtn" class="btn-album btn-action" onclick="goToAlbum()">🖼️ Voir ma carte ajoutée dans mon Album</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -529,6 +554,10 @@
             initDemoScratch();
             loadGoogleCards();
         });
+
+        function goToAlbum() {
+            window.location.href = "https://album-twitch-rogue.onrender.com";
+        }
 
         function initDemoScratch() {
             const canvas = document.getElementById('demoCanvas');
@@ -771,7 +800,7 @@
             document.getElementById('ticketArea').style.display = 'flex';
             document.getElementById('replayBtn').style.display = 'none';
             
-            // Re-afficher le bouton dévoiler pour la nouvelle carte
+            // RESET DES BOUTONS
             document.getElementById('revealBtn').style.display = 'block';
             document.getElementById('albumLinkBtn').style.display = 'none';
 
@@ -814,8 +843,9 @@
 
         function initScratchCanvas() {
             const canvas = document.getElementById('scratchCanvas');
+            canvas.className = ''; // Reset des classes
             canvas.style.display = 'block';
-            canvas.style.opacity = '1';
+            canvas.style.pointerEvents = 'auto';
 
             const ctx = canvas.getContext('2d');
             ctx.globalCompositeOperation = 'source-over';
@@ -885,15 +915,24 @@
         }
 
         function revealCardFully() {
+            // Destruction complète du Canvas pour débloquer 100% le tactile mobile
+            const canvas = document.getElementById('scratchCanvas');
+            if (canvas) {
+                canvas.classList.add('disabled');
+                canvas.style.pointerEvents = 'none';
+                canvas.style.display = 'none';
+            }
+
+            // Masquer le bouton "Dévoiler"
+            document.getElementById('revealBtn').style.display = 'none';
+
+            // Afficher le bouton Album si une carte est gagnée
+            if (currentReward && currentReward.type === "card") {
+                document.getElementById('albumLinkBtn').style.display = 'block';
+            }
+
             if (isScratched) return;
             isScratched = true;
-
-            // Retirer physiquement le canvas
-            const canvas = document.getElementById('scratchCanvas');
-            canvas.style.display = 'none';
-
-            // Masquer le bouton "Dévoiler" puisqu'elle est DÉJÀ affichée !
-            document.getElementById('revealBtn').style.display = 'none';
 
             try {
                 confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
@@ -905,9 +944,6 @@
                 fetch(urlAvecParams, { method: 'GET', mode: 'no-cors' })
                 .then(() => console.log("Carte enregistrée avec succès !"))
                 .catch(e => console.error(e));
-
-                // Afficher le lien natif vers l'Album
-                document.getElementById('albumLinkBtn').style.display = 'block';
             }
 
             db.ref('scratch_alerts').set({
