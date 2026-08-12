@@ -573,7 +573,6 @@
 
         /* --- CORRECTION REDIRECTION TWITCH --- */
         function loginWithTwitch() {
-            // Nettoie l'URL pour éviter d'envoyer d'anciennes erreurs à Twitch
             const redirectUri = window.location.origin + window.location.pathname;
             const url = `https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=user:read:email`;
             window.location.href = url;
@@ -594,7 +593,6 @@
                     if (data.data && data.data[0]) {
                         currentUser = data.data[0].login.toLowerCase();
                         localStorage.setItem('gratte_twitch_user', currentUser);
-                        // Nettoie la barre d'adresse proprement sans recharger
                         window.history.replaceState(null, null, window.location.pathname);
                         showTicketInputScreen(currentUser);
                     }
@@ -924,6 +922,9 @@
             }
         }
 
+        // =======================================================
+        // FONCTION CORRIGÉE POUR ENVOI DU CARD_ID VERS GOOGLE SHEETS
+        // =======================================================
         function revealCardFully() {
             if (isScratched) return;
             isScratched = true;
@@ -936,14 +937,17 @@
             confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
 
             if (currentReward.type === "card" && currentReward.cardId) {
+                const payload = new URLSearchParams();
+                payload.append('user', currentReward.user);
+                payload.append('cardId', currentReward.cardId);
+
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user: currentReward.user,
-                        cardId: currentReward.cardId
-                    })
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: payload.toString()
                 }).catch(e => console.error("Erreur écriture Google Sheets", e));
 
                 document.getElementById('albumLinkBtn').style.display = 'block';
