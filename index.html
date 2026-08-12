@@ -35,7 +35,7 @@
             -webkit-user-select: none;
         }
 
-        /* --- FIXE MAJEUR TACTILE MOBILE --- */
+        /* --- FIXE FORCE MOBILE --- */
         button, a, .btn-reveal, .btn-back-menu, .btn-replay-bonus {
             user-select: none !important;
             -webkit-user-select: none !important;
@@ -43,7 +43,9 @@
             touch-action: manipulation !important;
             cursor: pointer;
             position: relative;
-            z-index: 999 !important; /* Priorité absolue sur les clics */
+            z-index: 999 !important;
+            text-decoration: none;
+            display: inline-block;
         }
 
         /* --- LANDING PAGE --- */
@@ -480,8 +482,12 @@
         </div>
 
         <button id="replayBtn" class="btn-replay-bonus" onclick="playBonusTicket()">🎁 Gratter mon Ticket Gratuit !</button>
+        
+        <!-- BOUTON DÉVOILER -->
         <button id="revealBtn" class="btn-reveal" onclick="revealCardFully()">⚡ Dévoiler directement la carte</button>
-        <button id="albumLinkBtn" class="btn-reveal" style="display:none; margin-top:8px;" onclick="goToAlbum()">🖼️ Voir ma carte ajoutée dans mon Album</button>
+        
+        <!-- VRAI LIEN NATIF ALBUM (FIX MOBILE) -->
+        <a id="albumLinkBtn" href="https://album-twitch-rogue.onrender.com" target="_blank" rel="noopener noreferrer" class="btn-reveal" style="display:none; margin-top:8px;">🖼️ Voir ma carte ajoutée dans mon Album</a>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -523,10 +529,6 @@
             initDemoScratch();
             loadGoogleCards();
         });
-
-        function goToAlbum() {
-            window.open("https://album-twitch-rogue.onrender.com", "_blank");
-        }
 
         function initDemoScratch() {
             const canvas = document.getElementById('demoCanvas');
@@ -768,6 +770,8 @@
             document.getElementById('stepTicketInput').style.display = 'none';
             document.getElementById('ticketArea').style.display = 'flex';
             document.getElementById('replayBtn').style.display = 'none';
+            
+            // Re-afficher le bouton dévoiler pour la nouvelle carte
             document.getElementById('revealBtn').style.display = 'block';
             document.getElementById('albumLinkBtn').style.display = 'none';
 
@@ -812,7 +816,6 @@
             const canvas = document.getElementById('scratchCanvas');
             canvas.style.display = 'block';
             canvas.style.opacity = '1';
-            canvas.style.pointerEvents = 'auto';
 
             const ctx = canvas.getContext('2d');
             ctx.globalCompositeOperation = 'source-over';
@@ -885,10 +888,12 @@
             if (isScratched) return;
             isScratched = true;
 
+            // Retirer physiquement le canvas
             const canvas = document.getElementById('scratchCanvas');
-            
-            // FIX CLÉ MOBILE : On retire immédiatement le canvas du DOM/Affichage
             canvas.style.display = 'none';
+
+            // Masquer le bouton "Dévoiler" puisqu'elle est DÉJÀ affichée !
+            document.getElementById('revealBtn').style.display = 'none';
 
             try {
                 confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
@@ -901,6 +906,7 @@
                 .then(() => console.log("Carte enregistrée avec succès !"))
                 .catch(e => console.error(e));
 
+                // Afficher le lien natif vers l'Album
                 document.getElementById('albumLinkBtn').style.display = 'block';
             }
 
@@ -914,7 +920,6 @@
 
             if (currentReward.type === "rejoue") {
                 document.getElementById('replayBtn').style.display = 'block';
-                document.getElementById('revealBtn').style.display = 'none';
             }
         }
     </script>
