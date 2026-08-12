@@ -17,7 +17,10 @@
             --twitch-purple: #9146FF;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+        }
 
         body {
             margin: 0; padding: 15px;
@@ -32,13 +35,15 @@
             -webkit-user-select: none;
         }
 
-        /* --- FIXES INTERACTIONS MOBILES --- */
-        button, a, input {
-            user-select: auto !important;
-            -webkit-user-select: auto !important;
-            touch-action: manipulation;
+        /* --- FIXE MAJEUR TACTILE MOBILE --- */
+        button, a, .btn-reveal, .btn-back-menu, .btn-replay-bonus {
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -webkit-touch-callout: none !important;
+            touch-action: manipulation !important;
             cursor: pointer;
-            pointer-events: auto !important;
+            position: relative;
+            z-index: 999 !important; /* Priorité absolue sur les clics */
         }
 
         /* --- LANDING PAGE --- */
@@ -178,17 +183,11 @@
             background: var(--twitch-purple);
             color: #fff; border: none; padding: 14px 24px;
             border-radius: 10px; font-weight: 900;
-            cursor: pointer; text-transform: uppercase; font-size: 14px;
+            text-transform: uppercase; font-size: 14px;
             display: inline-flex; align-items: center; justify-content: center; gap: 10px;
             box-shadow: 0 0 25px rgba(145, 70, 255, 0.5);
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none;
             width: 100%;
             max-width: 350px;
-        }
-        .btn-twitch-hero:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 35px rgba(145, 70, 255, 0.8);
         }
 
         /* --- ÉTAPE 2 & 3 : JEU --- */
@@ -208,13 +207,15 @@
             border-radius: 8px; border: 1px solid var(--accent-cyan);
             background: #000; color: #fff; font-size: 16px; text-align: center;
             outline: none;
+            user-select: auto !important;
+            -webkit-user-select: auto !important;
         }
 
         .btn {
             background: linear-gradient(135deg, var(--accent-pink), #7928ca);
             color: #fff; border: none; padding: 14px;
             border-radius: 8px; font-weight: 900; width: 100%;
-            cursor: pointer; text-transform: uppercase; font-size: 15px;
+            text-transform: uppercase; font-size: 15px;
             margin-top: 10px;
         }
 
@@ -234,15 +235,14 @@
 
         .btn-logout {
             background: #ff4757; color: #fff; border: none; padding: 6px 10px;
-            border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: bold;
+            border-radius: 6px; font-size: 11px; font-weight: bold;
         }
 
         .btn-refresh {
             background: rgba(69, 243, 255, 0.2); border: 1px solid var(--accent-cyan);
             color: var(--accent-cyan); padding: 6px 10px;
-            border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: bold;
+            border-radius: 6px; font-size: 11px; font-weight: bold;
         }
-        .btn-refresh:hover { background: rgba(69, 243, 255, 0.4); }
 
         .ticket-container {
             display: none;
@@ -250,7 +250,7 @@
             align-items: center;
             width: 100%;
             max-width: 360px;
-            z-index: 5;
+            position: relative;
         }
 
         .btn-back-menu {
@@ -261,17 +261,10 @@
             border-radius: 8px;
             font-size: 13px;
             font-weight: 700;
-            cursor: pointer;
             margin-bottom: 12px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: background 0.2s;
-            position: relative;
-            z-index: 20;
-        }
-        .btn-back-menu:hover {
-            background: rgba(69, 243, 255, 0.2);
         }
 
         .scratch-card {
@@ -368,61 +361,58 @@
         canvas#scratchCanvas {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            cursor: pointer;
             z-index: 10;
             touch-action: none;
         }
 
         .btn-reveal {
-            background: transparent;
-            border: 1px solid var(--accent-cyan);
+            background: rgba(13, 17, 23, 0.9);
+            border: 2px solid var(--accent-cyan);
             color: var(--accent-cyan);
-            padding: 10px 18px;
+            padding: 12px 20px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            margin-top: 10px;
-            cursor: pointer;
-            position: relative;
-            z-index: 20;
+            font-size: 13px;
+            font-weight: 800;
+            margin-top: 12px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(69, 243, 255, 0.3);
         }
-        .btn-reveal:hover { background: rgba(69, 243, 255, 0.1); }
 
         .btn-replay-bonus {
             background: linear-gradient(135deg, #00e676, #00b0ff);
             color: #000; border: none; padding: 14px 22px;
             border-radius: 25px; font-weight: 900;
-            cursor: pointer; text-transform: uppercase; font-size: 13px;
+            text-transform: uppercase; font-size: 13px;
             margin-top: 12px; box-shadow: 0 0 15px rgba(0, 230, 118, 0.5);
             display: none;
-            position: relative;
-            z-index: 20;
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
-    <!-- LANDING PAGE / PAGE DE PRÉSENTATION -->
+    <!-- LANDING PAGE -->
     <div id="stepLogin">
         <img src="./image/logo.jpg" class="hero-logo" alt="Logo PierotStream">
         <h1>Gratte-Gratte PierotStream</h1>
         <p class="hero-subtitle">
-            Bienvenue sur le mini-jeu officiel des lives ! Tente ta chance, gratte tes tickets exclusifs et débloque des cartes rares pour ton album ou des défis uniques en direct.
+            Bienvenue sur le mini-jeu officiel des lives ! Tente ta chance, gratte tes tickets exclusifs et débloque des cartes rares pour ton album.
         </p>
 
         <div class="presentation-grid">
             <div class="features-list">
                 <div class="feature-item">
                     <strong>1. Connecte-toi</strong>
-                    Utilise ton compte Twitch pour lier tes gains et valider ton profil instantanément.
+                    Utilise ton compte Twitch pour lier tes gains.
                 </div>
                 <div class="feature-item">
                     <strong>2. Récupère ton Code</strong>
-                    Des codes de tickets uniques sont partagés et distribués pendant les lives Twitch.
+                    Des codes uniques distribués en live.
                 </div>
                 <div class="feature-item">
                     <strong>3. Gratte & Gagne</strong>
-                    Découvre des cartes exclusives (Commune à Full Art) ou des défis pour dynamiser le stream !
+                    Découvre tes cartes rares pour ton album !
                 </div>
             </div>
 
@@ -441,11 +431,11 @@
 
         <button class="btn-twitch-hero" onclick="loginWithTwitch()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.571zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
-            Se connecter avec Twitch pour jouer
+            Se connecter avec Twitch
         </button>
     </div>
 
-    <!-- ÉTAPE 2 : SAISIE DU CODE & TICKET -->
+    <!-- ÉTAPE 2 : SAISIE CODE -->
     <div id="stepTicketInput" class="auth-box" style="display:none;">
         <h2 style="color:var(--accent-gold); margin-top:0; font-size: 20px;">🎟️ TON TICKET</h2>
         
@@ -491,7 +481,7 @@
 
         <button id="replayBtn" class="btn-replay-bonus" onclick="playBonusTicket()">🎁 Gratter mon Ticket Gratuit !</button>
         <button id="revealBtn" class="btn-reveal" onclick="revealCardFully()">⚡ Dévoiler directement la carte</button>
-        <a id="albumLinkBtn" href="https://album-twitch-rogue.onrender.com" target="_blank" class="btn-reveal" style="display:none; text-decoration:none; margin-top:8px;">🖼️ Voir ma carte ajoutée dans mon Album</a>
+        <button id="albumLinkBtn" class="btn-reveal" style="display:none; margin-top:8px;" onclick="goToAlbum()">🖼️ Voir ma carte ajoutée dans mon Album</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -534,6 +524,10 @@
             loadGoogleCards();
         });
 
+        function goToAlbum() {
+            window.open("https://album-twitch-rogue.onrender.com", "_blank");
+        }
+
         function initDemoScratch() {
             const canvas = document.getElementById('demoCanvas');
             if (!canvas) return;
@@ -573,10 +567,7 @@
                 requestAnimationFrame(scratchDemoStep);
             }
 
-            setInterval(() => {
-                resetDemoLayer();
-            }, 4500);
-
+            setInterval(() => { resetDemoLayer(); }, 4500);
             requestAnimationFrame(scratchDemoStep);
         }
 
@@ -678,41 +669,19 @@
             "commune": [
                 { type: "defi", title: "Perdu ! Essaye encore la prochaine fois 😜", icon: "❌" },
                 { type: "rejoue", title: "Rejoue ! (1 Ticket Offert)", icon: "🎟️" },
-                { type: "defi", title: "Le Streamer te dit Merci de vive voix !", icon: "🗣️" },
-                { type: "defi", title: "Doit porter un chapeau pendant 15 minutes", icon: "🎩" },
-                { type: "defi", title: "Doit porter des lunettes de soleil pendant 10 minutes", icon: "🕶️" },
+                { type: "defi", title: "Le Streamer te dit Merci de vive voix !", icon: "🗣️" }
             ],
             "peu-commune": [
                 { type: "defi", title: "Doit jouer debout pendant 10 min", icon: "🧍" },
-                { type: "defi", title: "Mute Discord pendant 1 minute !", icon: "🔇" },
-                { type: "defi", title: "Doit porter un chapeau pendant 30 minutes", icon: "🎩" },
-                { type: "defi", title: "Doit porter des lunettes de soleil pendant 20 minutes", icon: "🕶️" },
-                { type: "defi", title: "Doit être dos à la caméra pendant 5 minutes", icon: "🔄" }
+                { type: "defi", title: "Mute Discord pendant 1 minute !", icon: "🔇" }
             ],
             "rare": [
-                { type: "defi", title: "Sauce Piquante n°1 en Live pour Pierot !", icon: "🌶️" },
-                { type: "defi", title: "Sauce Piquante n°2 en Live pour Pierot !", icon: "🌶️" },
-                { type: "defi", title: "Sauce Piquante n°3 en Live pour Pierot !", icon: "🌶️" },
-                { type: "defi", title: "Sauce Piquante n°4 en Live pour Pierot !", icon: "🌶️" },
-                { type: "defi", title: "Mute Discord 3 minutes !", icon: "🔇" },
-                { type: "defi", title: "Doit porter un chapeau rigolo pour le reste du stream", icon: "🎩" },
-                { type: "defi", title: "Doit être dos à la caméra pendant 10 minutes", icon: "🔄" }
+                { type: "defi", title: "Sauce Piquante n°1 en Live pour Pierot !", icon: "🌶️" }
             ],
             "ultra-rare": [
-                { type: "defi", title: "Sauce Piquante n°5 en Live pour Pierot !", icon: "🔥" },
-                { type: "defi", title: "Sauce Piquante n°6 en Live pour Pierot !", icon: "🔥" },
-                { type: "defi", title: "Sauce Piquante n°7 en Live pour Pierot !", icon: "🔥" },
-                { type: "defi", title: "Sauce Piquante n°8 en Live pour Pierot !", icon: "🔥" },
-                { type: "defi", title: "Jouer à UNE MAIN pendant 5 minutes !", icon: "🤚" },
-                { type: "defi", title: "VIP sur la chaîne pendant 1 Semaine !", icon: "💎" },
-                { type: "defi", title: "Doit porter des lunettes de soleil et un chapeau pour toute la session", icon: "😎" }
+                { type: "defi", title: "VIP sur la chaîne pendant 1 Semaine !", icon: "💎" }
             ],
             "full-art": [
-                { type: "defi", title: "Sauce Piquante n°9 en Live pour Pierot !", icon: "💀" },
-                { type: "defi", title: "Sauce Piquante n°10 en Live pour Pierot !", icon: "💀" },
-                { type: "defi", title: "Sauce Piquante n°11 en Live pour Pierot !", icon: "💀" },
-                { type: "defi", title: "Sauce Piquante n°12 en Live pour Pierot !", icon: "💀" },
-                { type: "defi", title: "Interdiction de Bouger pendant 2 min", icon: "🗿" },
                 { type: "defi", title: "VIP sur la chaîne pendant 1 MOIS !", icon: "👑" }
             ]
         };
@@ -745,19 +714,13 @@
 
                 if (resultText.includes("Succès")) {
                     err.style.display = "none";
-                    
-                    db.ref(`scratch_tickets/${code}`).update({
-                        used: true,
-                        user: currentUser
-                    });
-
+                    db.ref(`scratch_tickets/${code}`).update({ used: true, user: currentUser });
                     generateReward(currentUser, code, 'random');
                 } else {
                     err.textContent = resultText.replace("Erreur: ", "");
                     err.style.display = "block";
                 }
             } catch(e) {
-                console.error("Erreur de validation du ticket", e);
                 err.textContent = "Code Ticket invalide ou déjà utilisé !";
                 err.style.display = "block";
             }
@@ -833,14 +796,12 @@
         function playBonusTicket() {
             try {
                 const bonusCode = "BONUS_" + Math.floor(1000 + Math.random() * 9000);
-                
                 db.ref(`scratch_tickets/${bonusCode}`).set({
                     created: Date.now(),
                     rarity: 'random',
                     used: true,
                     user: currentUser || 'mobile_user'
-                }).catch(e => console.error(e));
-
+                });
                 generateReward(currentUser || 'mobile_user', bonusCode, 'random');
             } catch(err) {
                 console.error("Erreur lancement bonus:", err);
@@ -851,16 +812,14 @@
             const canvas = document.getElementById('scratchCanvas');
             canvas.style.display = 'block';
             canvas.style.opacity = '1';
-            canvas.style.pointerEvents = 'auto'; // Réactive le toucher pour le grattage
+            canvas.style.pointerEvents = 'auto';
 
             const ctx = canvas.getContext('2d');
             ctx.globalCompositeOperation = 'source-over';
 
             const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             grad.addColorStop(0, '#bf953f');
-            grad.addColorStop(0.25, '#fcf6ba');
             grad.addColorStop(0.5, '#b38728');
-            grad.addColorStop(0.75, '#fbf5b7');
             grad.addColorStop(1, '#aa771c');
 
             ctx.fillStyle = grad;
@@ -882,7 +841,6 @@
                 ctx.fill();
 
                 scratchStrokes++;
-
                 if (scratchStrokes > 12) {
                     checkScratchPercentage();
                 }
@@ -909,7 +867,6 @@
 
         function checkScratchPercentage() {
             if (isScratched) return;
-
             const canvas = document.getElementById('scratchCanvas');
             const ctx = canvas.getContext('2d');
             const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -929,10 +886,9 @@
             isScratched = true;
 
             const canvas = document.getElementById('scratchCanvas');
-            canvas.style.pointerEvents = 'none'; // PERMET DE CLIQUER AUX BOUTONS EN DESSOUS SANS BLOCAGE
-            canvas.style.transition = 'opacity 0.5s ease';
-            canvas.style.opacity = '0';
-            setTimeout(() => { canvas.style.display = 'none'; }, 500);
+            
+            // FIX CLÉ MOBILE : On retire immédiatement le canvas du DOM/Affichage
+            canvas.style.display = 'none';
 
             try {
                 confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
@@ -941,12 +897,9 @@
             if (currentReward.type === "card" && currentReward.cardId) {
                 const urlAvecParams = `${GOOGLE_COLLECTION_SCRIPT_URL}?user=${encodeURIComponent(currentReward.user)}&cardId=${encodeURIComponent(currentReward.cardId)}`;
 
-                fetch(urlAvecParams, {
-                    method: 'GET',
-                    mode: 'no-cors'
-                })
-                .then(() => console.log("Carte enregistrée avec succès dans la collection !"))
-                .catch(e => console.error("Erreur écriture Google Sheets", e));
+                fetch(urlAvecParams, { method: 'GET', mode: 'no-cors' })
+                .then(() => console.log("Carte enregistrée avec succès !"))
+                .catch(e => console.error(e));
 
                 document.getElementById('albumLinkBtn').style.display = 'block';
             }
@@ -959,19 +912,9 @@
                 time: Date.now()
             });
 
-            db.ref('scratch_history').push({
-                user: currentReward.user,
-                reward: currentReward.title,
-                rarity: currentReward.rarity,
-                cardImage: currentReward.cardImage || null,
-                time: Date.now()
-            });
-
             if (currentReward.type === "rejoue") {
-                setTimeout(() => {
-                    document.getElementById('replayBtn').style.display = 'block';
-                    document.getElementById('revealBtn').style.display = 'none';
-                }, 300);
+                document.getElementById('replayBtn').style.display = 'block';
+                document.getElementById('revealBtn').style.display = 'none';
             }
         }
     </script>
