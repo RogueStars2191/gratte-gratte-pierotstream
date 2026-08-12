@@ -45,7 +45,7 @@
             touch-action: manipulation !important;
             cursor: pointer;
             position: relative;
-            z-index: 999 !important;
+            z-index: 100 !important;
             border: none;
             outline: none;
             text-decoration: none;
@@ -311,15 +311,16 @@
             line-height: 1.2;
         }
 
+        /* STRICTEMENT CONFINÉ : ZONE DE GRATTAGE SEULEMENT */
         .scratch-zone-bg {
             position: relative;
-            width: 100%;
-            max-width: 290px;
+            width: 290px;
             height: 350px;
             border-radius: 12px;
             overflow: hidden;
             background: #000;
             border: 2px solid rgba(255, 215, 0, 0.3);
+            margin: 0 auto;
         }
 
         .card-result {
@@ -332,6 +333,7 @@
             padding: 10px;
             text-align: center;
             background: radial-gradient(circle, #2a2d3d 0%, #0b0e14 100%);
+            z-index: 1;
         }
 
         .badge-rarity {
@@ -361,7 +363,7 @@
             margin-top: 5px;
         }
 
-        /* --- CORRECTION CIBLÉE DU CANVAS --- */
+        /* STYLE DU CANVAS : UNIQUEMENT SUR LA ZONE DE GRATTAGE */
         #scratchCanvas {
             position: absolute;
             top: 0; left: 0; 
@@ -369,12 +371,6 @@
             z-index: 10;
             touch-action: none;
             cursor: pointer;
-        }
-
-        /* DÉSACTIVATION TACTILE LORSQUE RÉVÉLÉ */
-        #scratchCanvas.disabled {
-            display: none !important;
-            pointer-events: none !important;
         }
 
         .btn-reveal {
@@ -494,6 +490,7 @@
                 </div>
             </div>
 
+            <!-- CONTENEUR STRICT POUR LE GRATTAGE -->
             <div class="scratch-zone-bg">
                 <div class="card-result" id="cardResult">
                     <span id="rarityBadge" class="badge-rarity"></span>
@@ -506,12 +503,11 @@
             </div>
         </div>
 
+        <!-- BOUTONS TOTALEMENT EXTÉRIEURS ET DÉGAGÉS DU CANVAS -->
         <button id="replayBtn" class="btn-replay-bonus btn-action" onclick="playBonusTicket()">🎁 Gratter mon Ticket Gratuit !</button>
         
-        <!-- BOUTON DÉVOILER DÉDIÉ -->
         <button id="revealBtn" class="btn-reveal btn-action" onclick="revealCardFully()">⚡ Dévoiler directement la carte</button>
         
-        <!-- BOUTON ALBUM AVEC REDIRECTION DIRECTE -->
         <button id="albumLinkBtn" class="btn-album btn-action" onclick="goToAlbum()">🖼️ Voir ma carte ajoutée dans mon Album</button>
     </div>
 
@@ -800,7 +796,6 @@
             document.getElementById('ticketArea').style.display = 'flex';
             document.getElementById('replayBtn').style.display = 'none';
             
-            // RESET DES BOUTONS
             document.getElementById('revealBtn').style.display = 'block';
             document.getElementById('albumLinkBtn').style.display = 'none';
 
@@ -841,11 +836,20 @@
             }
         }
 
+        /* RECRÉATION DU CANVAS ISOLÉ ET PROPRE DANS LA ZONE */
         function initScratchCanvas() {
-            const canvas = document.getElementById('scratchCanvas');
-            canvas.className = ''; // Reset des classes
-            canvas.style.display = 'block';
-            canvas.style.pointerEvents = 'auto';
+            let canvas = document.getElementById('scratchCanvas');
+            const zone = document.querySelector('.scratch-zone-bg');
+
+            if (!canvas && zone) {
+                canvas = document.createElement('canvas');
+                canvas.id = 'scratchCanvas';
+                canvas.width = 290;
+                canvas.height = 350;
+                zone.appendChild(canvas);
+            }
+
+            if (!canvas) return;
 
             const ctx = canvas.getContext('2d');
             ctx.globalCompositeOperation = 'source-over';
@@ -858,7 +862,7 @@
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
             ctx.font = '900 16px Montserrat';
             ctx.textAlign = 'center';
             ctx.fillText('✨ GRATTEZ ICI ✨', canvas.width / 2, canvas.height / 2);
@@ -893,14 +897,26 @@
             canvas.onmousemove = (e) => { if (isDrawing) { const p = getPos(e); scratch(p.x, p.y); } };
             window.onmouseup = () => isDrawing = false;
 
-            canvas.ontouchstart = (e) => { isDrawing = true; const p = getPos(e); scratch(p.x, p.y); };
-            canvas.ontouchmove = (e) => { if (isDrawing) { const p = getPos(e); scratch(p.x, p.y); } };
-            window.ontouchend = () => isDrawing = false;
+            canvas.ontouchstart = (e) => { 
+                isDrawing = true; 
+                const p = getPos(e); 
+                scratch(p.x, p.y); 
+            };
+            canvas.ontouchmove = (e) => { 
+                if (isDrawing) { 
+                    e.preventDefault(); // Empêche le défilement pendant le grattage tactile
+                    const p = getPos(e); 
+                    scratch(p.x, p.y); 
+                } 
+            };
+            canvas.ontouchend = () => isDrawing = false;
         }
 
         function checkScratchPercentage() {
             if (isScratched) return;
             const canvas = document.getElementById('scratchCanvas');
+            if (!canvas) return;
+
             const ctx = canvas.getContext('2d');
             const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
             let clearPixels = 0;
@@ -915,18 +931,14 @@
         }
 
         function revealCardFully() {
-            // Destruction complète du Canvas pour débloquer 100% le tactile mobile
+            // DESTRUCTION PHYSIQUE DU CANVAS : 0% DE CHANCE DE BLOQUER LES BOUTONS SUR MOBILE !
             const canvas = document.getElementById('scratchCanvas');
             if (canvas) {
-                canvas.classList.add('disabled');
-                canvas.style.pointerEvents = 'none';
-                canvas.style.display = 'none';
+                canvas.remove();
             }
 
-            // Masquer le bouton "Dévoiler"
             document.getElementById('revealBtn').style.display = 'none';
 
-            // Afficher le bouton Album si une carte est gagnée
             if (currentReward && currentReward.type === "card") {
                 document.getElementById('albumLinkBtn').style.display = 'block';
             }
