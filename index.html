@@ -904,7 +904,7 @@
             };
             canvas.ontouchmove = (e) => { 
                 if (isDrawing) { 
-                    e.preventDefault(); // Empêche le défilement pendant le grattage tactile
+                    e.preventDefault(); 
                     const p = getPos(e); 
                     scratch(p.x, p.y); 
                 } 
@@ -931,7 +931,10 @@
         }
 
         function revealCardFully() {
-            // DESTRUCTION PHYSIQUE DU CANVAS : 0% DE CHANCE DE BLOQUER LES BOUTONS SUR MOBILE !
+            if (isScratched) return;
+            isScratched = true;
+
+            // 1. DESTRUCTION PHYSIQUE DU CANVAS : Libère les boutons sur mobile
             const canvas = document.getElementById('scratchCanvas');
             if (canvas) {
                 canvas.remove();
@@ -942,9 +945,6 @@
             if (currentReward && currentReward.type === "card") {
                 document.getElementById('albumLinkBtn').style.display = 'block';
             }
-
-            if (isScratched) return;
-            isScratched = true;
 
             try {
                 confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
@@ -958,7 +958,17 @@
                 .catch(e => console.error(e));
             }
 
+            // 2. Alerte OBS (écrase la dernière alerte en direct)
             db.ref('scratch_alerts').set({
+                user: currentReward.user,
+                reward: currentReward.title,
+                rarity: currentReward.rarity,
+                cardImage: currentReward.cardImage || null,
+                time: Date.now()
+            });
+
+            // 3. Historique pour mod.html (empile les gains pour l'affichage de la liste modo)
+            db.ref('scratch_history').push({
                 user: currentReward.user,
                 reward: currentReward.title,
                 rarity: currentReward.rarity,
