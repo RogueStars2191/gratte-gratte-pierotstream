@@ -95,6 +95,35 @@
         .badge-r-full-art { background: #ffd700; color: #000; }
 
         .hidden { display: none !important; }
+
+        /* STYLE ACTIONS GROUPEES */
+        .batch-actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid #ff4757;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        .btn-delete-selected {
+            background: #ff4757;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-pink);
+        }
     </style>
 </head>
 <body>
@@ -104,7 +133,6 @@
             <h1>🎟️ Modération Gratte-Gratte</h1>
             <div class="header-links">
                 <button class="btn-refresh" onclick="manualRefresh()">🔄 Actualiser & Sync</button>
-                <!-- CORRECTION : Redirection vers index.html au lieu de gratte.html -->
                 <a href="index.html" target="_blank" style="color:var(--accent-cyan); text-decoration:none; font-weight:bold;">🎮 Voir le Gratte-Gratte</a>
             </div>
         </header>
@@ -158,10 +186,18 @@
             <!-- LISTE DES CODES GENERES -->
             <div class="card">
                 <h3>📋 Codes Tickets Générés</h3>
+                
+                <!-- BARRE D'ACTIONS GROUPEES (S'affiche si sélection) -->
+                <div id="batchActionsBar" class="batch-actions-bar hidden">
+                    <span id="selectedCountText" style="font-size: 13px; font-weight: bold; color: #ff4757;">0 ticket(s) sélectionné(s)</span>
+                    <button class="btn-delete-selected" onclick="deleteSelectedTickets()">🗑️ Supprimer la sélection</button>
+                </div>
+
                 <div style="max-height: 450px; overflow-y: auto;">
                     <table>
                         <thead>
                             <tr>
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"></th>
                                 <th>Code</th>
                                 <th>Rareté</th>
                                 <th>Statut</th>
@@ -266,7 +302,8 @@
 
             const keys = Object.keys(tickets);
             if (keys.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; opacity:0.6;">Aucun code généré pour le moment.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; opacity:0.6;">Aucun code généré pour le moment.</td></tr>';
+                document.getElementById('batchActionsBar').classList.add('hidden');
                 return;
             }
 
@@ -280,6 +317,7 @@
                 const t = tickets[code];
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
+                    <td style="text-align: center;"><input type="checkbox" class="ticket-checkbox" value="${code}" onchange="updateBatchBar()"></td>
                     <td><strong>${code}</strong></td>
                     <td>${t.rarity || 'random'}</td>
                     <td><span class="badge ${t.used ? 'bg-used' : 'bg-active'}">${t.used ? 'GRATTÉ' : 'DISPONIBLE'}</span></td>
@@ -288,6 +326,50 @@
                 `;
                 tbody.appendChild(tr);
             });
+            updateBatchBar();
+        }
+
+        function toggleSelectAll(masterCheckbox) {
+            const checkboxes = document.querySelectorAll('.ticket-checkbox');
+            checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+            updateBatchBar();
+        }
+
+        function updateBatchBar() {
+            const checkboxes = document.querySelectorAll('.ticket-checkbox');
+            const checked = document.querySelectorAll('.ticket-checkbox:checked');
+            const bar = document.getElementById('batchActionsBar');
+            const countText = document.getElementById('selectedCountText');
+            const master = document.getElementById('selectAllCheckbox');
+
+            if (checked.length > 0) {
+                bar.classList.remove('hidden');
+                countText.textContent = `${checked.length} ticket(s) sélectionné(s)`;
+            } else {
+                bar.classList.add('hidden');
+            }
+
+            if (checkboxes.length > 0 && checked.length === checkboxes.length) {
+                master.checked = true;
+            } else {
+                master.checked = false;
+            }
+        }
+
+        function deleteSelectedTickets() {
+            const checked = document.querySelectorAll('.ticket-checkbox:checked');
+            if (checked.length === 0) return;
+
+            if (confirm(`Voulez-vous vraiment supprimer les ${checked.length} tickets sélectionnés ?`)) {
+                const updates = {};
+                checked.forEach(cb => {
+                    updates[`scratch_tickets/${cb.value}`] = null;
+                });
+
+                db.ref().update(updates).then(() => {
+                    document.getElementById('selectAllCheckbox').checked = false;
+                });
+            }
         }
 
         function listenLiveGains() {
